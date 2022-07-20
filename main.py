@@ -1,10 +1,10 @@
 """ Compare water level data from list of rivers url with limits for floating """
-
+""" email sending may be blocked by firewall """
 
 import requests
-import poplib
 import smtplib
 from bs4 import BeautifulSoup
+import credentials
 
 
 urls = ["https://hydro.chmi.cz/hpps/hpps_prfdyn.php?seq=37829235", "https://hydro.chmi.cz/hpps/hpps_prfdyn.php?seq=37816755"]
@@ -25,36 +25,25 @@ def current_level(url):
 
 def send_email(data):
     """ send email """
-    sender_email = "12john.yy@gmail.com"
-    sender_pass = "Dsabtd12Ge"
-
+    sender_email = credentials.s_login
+    sender_pass = credentials.s_password
     receiver_email = "john.yy@seznam.cz"
 
     message = f'hey, those rivers are passable now: {data[0]}'
-
     print('trying to connect')
 
     try:
-        smtp_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        smtp_server.ehlo()
-        smtp_server.login(sender_email, sender_pass)
-        smtp_server.sendmail(sender_email, receiver_email, message)
+        # smtp_server = smtplib.SMTP_SSL('smtp.seznam.cz', 465)
+        server = smtplib.SMTP('smtp.seznam.cz', 465, None, 20)
+        server.starttls()
+        server.login(sender_email, sender_pass)
+        server.sendmail(sender_email, receiver_email, message)
+        server.quit
+        print("Successfully sent email")
 
-        smtp_server.close()
-
-        print("Email sent successfully!")
 
     except Exception as ex:
-
         print("Something went wrong….", ex)
-
-    # with poplib.POP3('pop.gmail.com', 995) as server:
-    #     # Mailbox = poplib.POP3_SSL('pop.googlemail.com', '995')
-    #     server.starttls()
-    #     print('tls ok ')
-    #     server.login(sender_email, sender_pass)
-    #     print("login success")
-    #     server.sendmail(sender_email,receiver_email,message)
 
 
 for url,limit,name in zip(urls,limits, names):
@@ -71,6 +60,5 @@ for url,limit,name in zip(urls,limits, names):
 
 print("passable rivers", passable_rivers)
 send_email(passable_rivers)
-
 
 
